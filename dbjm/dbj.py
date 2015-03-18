@@ -28,6 +28,13 @@ class Nodes:
         self.nodes[kmer]['abundance'] += 1
         self.nodes[kmer]['reads'][read_pair].append(read_id)
 
+    def removeLowCountNodes(self, threshold):
+        '''Remove nodes whose abundance < threshold.'''
+        n = self.nodes.keys() #can't change iterable length in for loop
+        for k in n:
+            if self.nodes[k]['abundance'] < threshold:
+                self.nodes.pop(k)
+
     def __str__(self):
         return '<Nodes Object>'
 
@@ -61,7 +68,7 @@ def chop(st, k):
         yield st[i:i+k]
 
 def rc_dna(dna_st):
-    '''Reverse complement dna_st according to canonical base pairing.
+    '''Reverse complement dna_st according to canonical base pairing and 'N'.
 
     Parameters
     ----------
@@ -72,5 +79,62 @@ def rc_dna(dna_st):
     -------
     str
     '''
-    complement = {'A':'T', 'T':'A', 'C':'G', 'G':'C'}
+    complement = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'N':'N'}
     return ''.join([complement[i] for i in dna_st])[::-1]
+
+def incoming_nodes(seq, alphabet='ACTG'):
+    '''Return sequences who would have an outgoing edge to seq in dbj graph.
+
+    Paramaters
+    ----------
+    seq : str
+        Sequence of kmer. 
+    alphabet : str
+        Letters of the alphabet over which kmers are formed.
+
+    Returns
+    -------
+    list of strs
+    '''
+    return [i + seq[:-1] for i in alphabet]
+
+def outgoing_nodes(seq, alphabet='ACTG'):
+    '''Return sequences who would have an incoming edge from seq in dbj graph.
+
+    Paramaters
+    ----------
+    seq : str
+        Sequence of kmer. 
+    alphabet : str
+        Letters of the alphabet over which kmers are formed.
+
+    Returns
+    -------
+    list of strs
+    '''
+    return [seq[1:] + i for i in alphabet]
+
+def count_edge_weight(node1_reads, node2_reads):
+    '''count number of reads linking node1 and node2.'''
+    e = 0 
+    for read in set(node1_reads):
+        if read in node2_reads:
+            e +=1
+    return e
+
+def calculate_path_coverage(nodes, sequence, k, read_pair):
+    '''Calculate coverage of sequence.'''
+    kmers = list(chop(sequence, k))
+    ews = []
+    for ind in range(len(kmers) - 1):
+        ew = count_edge_weight(nodes.nodes[kmers[ind]]['reads'][read_pair],
+                               nodes.nodes[kmers[ind+1]]['reads'][read_pair])
+        ews.append(ew)
+    return ews
+
+
+
+
+
+
+

@@ -1,1 +1,1 @@
-__all__ = ['dbj', 'parse', 'read_generator']
+__all__ = ['dbj', 'parse', 'read_generator', 'graph']
