@@ -26,10 +26,12 @@ def sequence_neighbor_graph(nodes, sequence, k, r, threshold, g = None):
         Length of kmers to chop sequence into.
     r : int
         Radius of nodes around sequence to display. NOT USED NOW
+    threshold : int
+        The abundance that a node not on the sequence must have to be included.
     g : nx.DiGraph object
         networkx digraph.
 
-    Expected number of nodes is 2*7 + (n-2)*6 +n.
+    Expected number of nodes is 7n+2.
     n = (len(sequence) - k) + 1
     '''
     if g == None:

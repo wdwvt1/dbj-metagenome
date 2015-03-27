@@ -61,6 +61,35 @@ def nodes_to_lines(nodes):
         lines.append(line)
     return lines
 
+def nodes_to_lines_mem(nodes, fp):
+    '''Write nodes to lines one at a time to avoid storing in memory.'''
+    o = open(fp, 'w')
+    header = '\t'.join(['kmer', 'abundance', 'r1', 'r2'])
+    o.write(header+'\n')
+
+    for node, vals in nodes.nodes.iteritems():
+        r1 = ','.join(map(str, vals['reads']['r1']))
+        r2 = ','.join(map(str, vals['reads']['r2']))
+        line = '\t'.join([node, str(vals['abundance']), r1, r2])
+        o.write(line+'\n')
+
+    o.close()
+
+def nodes_from_lines(fp, ignore_r1=False, ignore_r2=False):
+    '''Return a Nodes object built from fp.'''
+    n = Nodes()
+    o = open(fp, 'U')
+    _ = o.readline() # get rid of line0 header, can i do this with seek?
+    for line in o:
+        if ignore_r1:
+            kmer, abd, r2s = line.strip().split('\t')
+            n.addObservationFromLine(kmer, abd, [], r2s.strip().split(','))
+        elif ignore_r2:
+            kmer, abd, r1s = line.strip().split('\t')
+            n.addObservationFromLine(kmer, abd, r1s.strip().split(','), [])
+    o.close()
+    return n
+
 
 def get_seq_from_read(read_number, readlist, reads_fp):
     '''return the sequence of a given read.'''

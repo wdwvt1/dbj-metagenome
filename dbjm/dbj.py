@@ -28,6 +28,27 @@ class Nodes:
         self.nodes[kmer]['abundance'] += 1
         self.nodes[kmer]['reads'][read_pair].append(read_id)
 
+    def addObservationFromLine(self, kmer, abundance, r1s, r2s):
+        '''Add an observation to self.nodes when total abundance etc. is known.
+
+        This function adds a new node and all the abundance and read presence
+        information for this kmer. To be used when adding nodes from a txt file.
+
+        Parameters
+        ----------
+        kmer : str
+            Sequence constituting the kmer. 
+        abundance : int
+            Number of observations of this kmer. 
+        r1s : list
+            Read ids from read 1 that contained this kmer. 
+        r2s : list
+            Read ids from read 2 that contained this kmer.
+        '''
+        self.nodes[kmer]['abundance'] = abundance
+        self.nodes[kmer]['reads']['r1'] = r1s
+        self.nodes[kmer]['reads']['r2'] = r2s
+
     def removeLowCountNodes(self, threshold):
         '''Remove nodes whose abundance < threshold.'''
         n = self.nodes.keys() #can't change iterable length in for loop
