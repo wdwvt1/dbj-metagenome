@@ -1,6 +1,39 @@
 #!/usr/bin/env python
 
+from numpy import array, int32
 from collections import defaultdict
+
+class Nodes2():
+
+    def __init__(self):
+        self.nodes = {}
+
+    def observe(self, kmer1, kmer2):
+
+        if kmer1 not in self.nodes:
+            self.nodes[kmer1] = array([0, 0, 0, 0], dtype=int32)
+            self.nodes[kmer1][nt_to_ind(kmer2[-1])] += 1
+
+    def abundance(self, kmer):
+
+        sum_outgoing = self.nodes[kmer].sum()
+        inc_nodes = incoming_nodes(kmer)
+        sum_incoming = sum([self.nodes[k][nt_to_ind(kmer[-2])] for k in
+                            incoming_nodes])
+        return sum_outgoing + sum_incoming
+
+
+def nt_to_ind(nt):
+    if nt == 'A':
+        return 0
+    elif nt == 'T':
+        return 1
+    elif nt == 'C':
+        return 2
+    elif nt == 'G':
+        return 3
+
+
 
 class Nodes:
 

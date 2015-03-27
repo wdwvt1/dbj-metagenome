@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from dbjm.dbj import Nodes, ReadList, chop
+from dbjm.dbj import Nodes, Nodes2, ReadList, chop
 from itertools import islice
 import subprocess as sub
 
@@ -45,6 +45,30 @@ def fastq_to_nodes(fastq, expected_num_seqs, k, r1_or_r2):
                 N.addObservation(kmer, read_index, r1_or_r2)
 
     return N, rl
+
+def fastq_to_nodes2(fastq, k):
+    ''''''
+    # create node storage dict
+    N = Nodes2()
+
+    with open(fastq, 'r') as f:
+        while True:
+            vals = list(islice(f, 4))
+            if len(vals) != 4:
+                break
+            read_id = vals[0].strip()
+            seq = vals[1].strip()
+
+
+            kmers = list(chop(seq, k))
+            i = 0
+            j = 1
+            while j < len(kmers):
+                N.observe(kmers[i], kmers[j])
+                i += 1
+                j += 1
+    return N
+
 
 def discard_low_quality(qual_score, params):
     '''discard a low quality read.'''
@@ -98,6 +122,16 @@ def get_seq_from_read(read_number, readlist, reads_fp):
     seq = sub.Popen(cmd % (seq_header, reads_fp), stdout=sub.PIPE,
                     stderr=sub.PIPE, shell=True).communicate()[0].split('\n')[1]
     return seq
+
+def node2_to_file(nodes, fp):
+    '''store node2 to file.'''
+    o = open(fp, 'w')
+    header = '\t'.join(['kmer', 'A', 'T', 'C', 'G'])
+    o.write(header+'\n')
+    for kmer, edge_vals in nodes.nodes.iteritems():
+        line = '\t'.join(map(str, [kmer] + list(edge_vals)))
+        o.write(line+'\n')
+    o.close()
 
 
 
