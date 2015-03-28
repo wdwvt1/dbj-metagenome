@@ -12,7 +12,8 @@ class Nodes2():
 
         if kmer1 not in self.nodes:
             self.nodes[kmer1] = array([0, 0, 0, 0], dtype=int32)
-            self.nodes[kmer1][nt_to_ind(kmer2[-1])] += 1
+        
+        self.nodes[kmer1][nt_to_ind(kmer2[-1])] += 1
 
     def abundance(self, kmer):
 
