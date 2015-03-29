@@ -46,7 +46,7 @@ def fastq_to_nodes(fastq, expected_num_seqs, k, r1_or_r2):
 
     return N, rl
 
-def fastq_to_nodes2(fastq, k):
+def fastq_to_nodes2(fastq, k, rc=False):
     ''''''
     # create node storage dict
     N = Nodes2()
@@ -60,7 +60,7 @@ def fastq_to_nodes2(fastq, k):
             seq = vals[1].strip()
 
 
-            kmers = list(chop(seq, k))
+            kmers = list(chop(seq, k, rc))
             i = 0
             j = 1
             while j < len(kmers):

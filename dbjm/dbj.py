@@ -117,8 +117,13 @@ class ReadList:
         self.reads = self.reads[:self.index]
 
 
-def chop(st, k):
-    '''produce kmers.'''
+def chop(st, k, rc=False):
+    '''Chop a sequence into kmers of length k. Optionally reverse complement.
+
+    This function yields substrings of st of length k. If rc=True, this function
+    will reverse compliment st before chopping.'''
+    if rc:
+        st = rc_dna(st)
     for i in range(0, len(st) - (k-1)):
         yield st[i:i+k]
 
