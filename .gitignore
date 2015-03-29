@@ -1,1 +1,5 @@
+# remove .pyc files from consideration for tracking
 *.pyc
+
+# remove .DS_store
+.DS_store
