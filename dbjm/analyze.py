@@ -2,16 +2,65 @@
 
 import matplotlib.pyplot as plt
 import networkx as nx
-from dbjm.dbj import outgoing_nodes, incoming_nodes, chop, count_edge_weight
+from dbjm.dbj import outgoing_nodes, incoming_nodes, chop
+from numpy import zeros, int32, int64, arange, hstack, array
 
-def node_abundance_histogram(nodes):
-    '''Plot a node abundance histogram.'''
-    ab = [v['abundance'] for v in nodes.nodes.values()]
-    counts, bins, patches = plt.hist(ab, bins=250, log=True)
-    plt.xlabel('Unique Kmers')
-    plt.ylabel('Count')
-    plt.title('Kmer Count Histogram')
-    return counts, bins, patches
+def kmer_stats_from_file(fp, max_exp_count=100000):
+    '''Return statistics about a list of kmers found in fp.
+
+    This function returns the total number of kmers found, an array with bins
+    containing the number of kmers at each abundance, any kmer counts above
+    the max_exp_count, and the frequency of bases in the kmers.
+
+    Parameters
+    ----------
+    fp : str
+        Filepath to kmer file.
+    max_exp_count : int
+        The expected maximum abundance of any given kmer.
+    '''
+    num_kmers = 0
+    atcg = zeros(4, dtype=int64)
+    counts_bin = zeros(max_exp_count, dtype=int32)
+    large_kmers = []
+    o = open(fp)
+    _ = o.readline()
+    for line in o:
+        tmp = line.strip().split('\t')
+        count = sum(map(int, tmp[1:]))
+        try:
+            counts_bin[count] += 1
+        except IndexError:
+            large_kmers.append(count)
+        num_kmers += 1
+        atcg += [tmp[0].count(i) for i in 'ATCG']
+    return counts_bin, num_kmers, large_kmers, atcg
+
+def kmer_histogram(counts_bins, large_kmers=None):
+    '''Plot a histogram of kmers.'''
+    xs = arange(counts_bins.shape[0])
+    ys = counts_bins
+    if large_kmers is not None:
+        tmp = sorted(list(set(large_kmers)))
+        xs_ = tmp
+        ys_ = array([large_kmers.count(i) for i in tmp])
+        xs = hstack((xs, xs_))
+        ys = hstack((ys, ys_))
+    plt.plot(xs, ys, color='blue', lw=5, alpha=.5)
+    plt.yscale('log')
+    plt.xlabel('Abundance')
+    plt.ylabel('Unique Kmers with Abundance X')
+    plt.title('Kmer Counts')
+
+
+
+
+
+
+
+
+
+
 
 def sequence_neighbor_graph(nodes, sequence, k, r, threshold, g = None):
     '''Produce a sequence neighbor graph.

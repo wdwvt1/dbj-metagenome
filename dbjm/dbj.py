@@ -9,22 +9,38 @@ class Nodes2():
         self.nodes = {}
 
     def observe(self, kmer1, kmer2):
+        '''Add kmer1 to self and incriment the count of kmer1.
 
+        This function adds kmer1 if it isn't in self and incriments the count 
+        of kmer one regardless to account for connection to kmer 2. 
+        '''
         if kmer1 not in self.nodes:
             self.nodes[kmer1] = array([0, 0, 0, 0], dtype=int32)
         
         self.nodes[kmer1][nt_to_ind(kmer2[-1])] += 1
 
-    def abundance(self, kmer):
+    def add_from_file(self, kmer, arr):
+        '''Add a node when reading from file.
 
+        Assumes node is not already in file. Will overwrite if node already in
+        file.
+        '''
+        self.nodes[kmer] = arr
+
+    def abundance(self, kmer):
+        '''Calculate the abundance of a kmer in self.nodes.
+
+        This function calculates the abundance of kmer as the sum of its ingoing
+        and outgoing connection abundances.
+        '''
         sum_outgoing = self.nodes[kmer].sum()
         inc_nodes = incoming_nodes(kmer)
         sum_incoming = sum([self.nodes[k][nt_to_ind(kmer[-2])] for k in
                             incoming_nodes])
         return sum_outgoing + sum_incoming
 
-
 def nt_to_ind(nt):
+    '''Return index of a nt in the scheme actg -> 0123.'''
     if nt == 'A':
         return 0
     elif nt == 'T':
@@ -33,89 +49,6 @@ def nt_to_ind(nt):
         return 2
     elif nt == 'G':
         return 3
-
-
-
-class Nodes:
-
-    def __init__(self):
-        '''Initiate a Nodes object.'''
-        def _f():
-            return {'abundance': 0, 'reads': {'r1': [], 'r2': []}}
-        self.nodes = defaultdict(_f)
-
-    def addObservation(self, kmer, read_id, read_pair):
-        '''Add observation to self.nodes
-
-        This function adds a new node (kmer) to self if that node hasn't been 
-        observed before. It adds a new observation to a known node otherwise.
-
-        Parameters
-        ----------
-        kmer : str
-            Sequence constituting the kmer. 
-        read_id : numeric or str
-            Reference to read id which is stored in Readlist class.
-        read_pair : str
-            One of 'r1' or 'r2'. Whether this kmer came from r1 or r2.. 
-        '''
-        self.nodes[kmer]['abundance'] += 1
-        self.nodes[kmer]['reads'][read_pair].append(read_id)
-
-    def addObservationFromLine(self, kmer, abundance, r1s, r2s):
-        '''Add an observation to self.nodes when total abundance etc. is known.
-
-        This function adds a new node and all the abundance and read presence
-        information for this kmer. To be used when adding nodes from a txt file.
-
-        Parameters
-        ----------
-        kmer : str
-            Sequence constituting the kmer. 
-        abundance : int
-            Number of observations of this kmer. 
-        r1s : list
-            Read ids from read 1 that contained this kmer. 
-        r2s : list
-            Read ids from read 2 that contained this kmer.
-        '''
-        self.nodes[kmer]['abundance'] = abundance
-        self.nodes[kmer]['reads']['r1'] = r1s
-        self.nodes[kmer]['reads']['r2'] = r2s
-
-    def removeLowCountNodes(self, threshold):
-        '''Remove nodes whose abundance < threshold.'''
-        n = self.nodes.keys() #can't change iterable length in for loop
-        for k in n:
-            if self.nodes[k]['abundance'] < threshold:
-                self.nodes.pop(k)
-
-    def __str__(self):
-        return '<Nodes Object>'
-
-    __repr__ = __str__
-
-
-class ReadList:
-
-    def __init__(self, expected_size):
-        '''Create a list of reads with an expected size.'''
-        self.reads = [None] * expected_size
-        self.index = 0
-
-    def addRead(self, read_id):
-        '''Add a read.'''
-        self.reads[self.index] = read_id
-        self.index += 1
-
-    def getLastIndex(self):
-        '''Return the index of the last read.'''
-        return self.index - 1
-
-    def removeUnused(self):
-        '''Remove entries which are not used because reads were discarded.'''
-        self.reads = self.reads[:self.index]
-
 
 def chop(st, k, rc=False):
     '''Chop a sequence into kmers of length k. Optionally reverse complement.
@@ -173,25 +106,6 @@ def outgoing_nodes(seq, alphabet='ACTG'):
     list of strs
     '''
     return [seq[1:] + i for i in alphabet]
-
-def count_edge_weight(node1_reads, node2_reads):
-    '''count number of reads linking node1 and node2.'''
-    e = 0 
-    for read in set(node1_reads):
-        if read in node2_reads:
-            e +=1
-    return e
-
-def calculate_path_coverage(nodes, sequence, k, read_pair):
-    '''Calculate coverage of sequence.'''
-    kmers = list(chop(sequence, k))
-    ews = []
-    for ind in range(len(kmers) - 1):
-        ew = count_edge_weight(nodes.nodes[kmers[ind]]['reads'][read_pair],
-                               nodes.nodes[kmers[ind+1]]['reads'][read_pair])
-        ews.append(ew)
-    return ews
-
 
 
 
