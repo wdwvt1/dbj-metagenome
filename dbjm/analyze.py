@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
+from collections import deque
 import networkx as nx
 from dbjm.dbj import outgoing_nodes, incoming_nodes, chop
 from numpy import zeros, int32, int64, arange, hstack, array
@@ -54,10 +55,62 @@ def kmer_histogram(counts_bins, large_kmers=None, x_ub=None):
     plt.ylabel('Unique Kmers with Abundance X')
     plt.title('Kmer Counts')
 
+def find_next_kmer(kmer, ew, offset, threshold, alphabet='ACTG'):
+    '''alphabet controls order'''
+    for i in arange(offset, len(ew)):
+        if ew[i] >= threshold:
+            return kmer[1:] + alphabet[i]
+    return None
+
+def traverse_within_radius(kmer, r, kmer_graph, k, threshold, alphabet='ACTG'):
+    '''Traverse kmer_graph and find all nodes within r of kmer.
+
+    This function will traverse kmer_graph in the order of 'ACTG' until it has 
+    collected all nodes within r nodes of kmer. A kmer will be added only if it
+    has greater abundance than the threshold.
 
 
+    Notes:
+    current implementaiton requires next_kmer to get hit 1 more time than it 
+    should every time we reach pl = r.
+    
+    Not yet implemented:
+    All nodes found by traversal are checked to make sure they are not a member
+    of seq. If they are members of seq then the search on that branch is
+    terminated. 
+    '''
+    seq_kmers = set(chop(seq, k))
 
+    stack = deque([kmer])
+    sub_graph = [kmer]
 
+    # initialize with our first kmer
+    # initialize offset at 0
+    # initialize pathlength at 0
+    offset = 0
+    pl = 0
+
+    while stack != deque([]):
+        next_kmer = find_next_kmer(kmer, kmer_graph.nodes[kmer], offset,
+                                   threshold)
+        if pl < r and next_kmer != None:
+            sub_graph.append(next_kmer)
+            stack.appendleft(kmer)
+            offset = 0
+            pl += 1
+        else:
+            try:
+                next_kmer = stack.popleft() #parent of the kmer just tried to leave
+                offset = alphabet.index(kmer[-1]) + 1 #switch to the next branch
+                pl -= 1
+            except IndexError: 
+                pass #deque is empty, will exit loop next time
+        kmer = next_kmer
+    return sub_graph
+
+def get_subgraph_radius(sub_graph):
+    '''Get the radius of a given subgraph.'''
+   
 
 
 
