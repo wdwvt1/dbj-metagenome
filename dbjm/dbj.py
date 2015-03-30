@@ -66,7 +66,7 @@ def rc_dna(dna_st):
     Parameters
     ----------
     dna_st : str
-        Lower case DNA string containing {actg}.
+        Upper case DNA string containing {actg}.
 
     Returns
     -------
@@ -107,7 +107,12 @@ def outgoing_nodes(seq, alphabet='ACTG'):
     '''
     return [seq[1:] + i for i in alphabet]
 
+def kmers_within_r(kmer, r, alphabet='ACTG'):
+    '''Return iterator that yields kmers within a distance r of kmer.'''
+    pass
 
+def iterate_through_kmers_within_r(kmer, r, alphabet='ACTG'):
+    pass
 
 
 

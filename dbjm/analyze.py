@@ -36,7 +36,7 @@ def kmer_stats_from_file(fp, max_exp_count=100000):
         atcg += [tmp[0].count(i) for i in 'ATCG']
     return counts_bin, num_kmers, large_kmers, atcg
 
-def kmer_histogram(counts_bins, large_kmers=None):
+def kmer_histogram(counts_bins, large_kmers=None, x_ub=None):
     '''Plot a histogram of kmers.'''
     xs = arange(counts_bins.shape[0])
     ys = counts_bins
@@ -47,6 +47,8 @@ def kmer_histogram(counts_bins, large_kmers=None):
         xs = hstack((xs, xs_))
         ys = hstack((ys, ys_))
     plt.plot(xs, ys, color='blue', lw=5, alpha=.5)
+    if x_ub is not None:
+        plt.xlim(0, x_ub)
     plt.yscale('log')
     plt.xlabel('Abundance')
     plt.ylabel('Unique Kmers with Abundance X')
